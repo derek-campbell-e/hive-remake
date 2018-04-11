@@ -1,16 +1,40 @@
-module.exports = function Hive(){
-  let options = {};
-  options.logFolder = './logs';
-  global['Options'] = options;
+module.exports = function Hive(Options){
+
+  const defaultOptions = require('./options')();
+  global['Options'] = require('extend')(true, {}, defaultOptions, Options);
 
   const common = require('../Common');
   const debug = require('debug')('hive');
 
   let hive = common.object();
-  let bees = {};
 
+  hive.meta.version = require('../../package.json').version;
   hive.meta.class = 'hive';
 
+  let cli = require('./CLI')(hive);
+
+  let bees = {};
+  let queen = null;
+
+
+  // private functions
+  let allBees = function(callback){
+    for(beeID in bees){
+      callback(bees[beeID]);
+    }
+  };
+
+  let beeByID = function(id, callback){
+    callback = callback || function(){};
+    if(bees.hasOwnProperty(id)){
+      callback(bees[id]);
+      return bees[id];
+    }
+    callback(false);
+    return false;
+  };
+
+  // public functions
   hive.getBees = function(){
     return bees;
   };
@@ -19,17 +43,16 @@ module.exports = function Hive(){
     if(!bees.hasOwnProperty(id)){
       return false;
     }
-    //console.log(bees[id]);
     return bees[id];
   };
 
   hive.addBeeToCollection = function(bee){
-    hive.log(`adding bee ${bee.meta.id} ${bee.meta.class}:${bee.meta.mind} to collection`);
+    hive.log(`adding bee ${bee.meta.debugName()} to collection`);
     bees[bee.meta.id] = bee;
   };
 
   hive.removeBeeFromCollection = function(bee){
-    hive.log(`removing bee ${bee.meta.id} ${bee.meta.class}:${bee.meta.mind} from collection`);
+    hive.log(`removing bee ${bee.meta.debugName()} from collection`);
     bees[bee.meta.id] = null;
     delete bees[bee.meta.id];
   };
@@ -40,6 +63,7 @@ module.exports = function Hive(){
   };
 
   let init = function(){
+    queen = require('../Queen')(hive);
     return hive;
   };
 

@@ -10,6 +10,10 @@ module.exports = function CommonObject(Options){
   Module.meta.id = common.uuid();
   Module.meta.class = "object";
   Module.meta.mind = "default";
+  Module.meta.debugName = function(){
+    return Module.meta.class + ":" + Module.meta.mind + ":" + Module.meta.id;
+  };
+  Module.meta.createdAt = common.timestamp();
 
   Module.meta.stdout = [];
   Module.meta.stderr = [];
